@@ -47,52 +47,35 @@ def followLine(robot, p, q):
     dist = scalar(pr, n0v) - d
 
 
-    # Orientierung der Geraden un des Roboters zueinander
+    # Orientierung der Geraden im KS bestimmen
     refv = np.array([[1], [0]])
-    test = np.array([[-1], [0]])
     phigerade = np.arccos(scalar(n0v, refv) / (vectorLength(n0v) * vectorLength(refv)))
     if n0v[0] > 0 and n0v[1] > 0:
         phigerade = phigerade
     elif n0v[0] > 0 and n0v[1] < 0:
         phigerade = -phigerade
-    #elif n0v[0] < 0 and n0v[1] < 0:
-    #   phigerade = -phigerade - 90 / 180 * np.pi
-    #elif n0v[0] < 0 and n0v[1] > 0:
-    #    phigerade += 90 / 180 * np.pi
 
-    print(dist, d)
-    print(n0v)
-    print(phigerade / np.pi * 180, theta / np.pi * 180)
+    #print(dist, d)
+    #print(n0v)
+    #print(phigerade / np.pi * 180, theta / np.pi * 180)
+
+    #P-Regler, k <= v
+    k = 0.13  # Modifikator der Winkelgeschwindigkeitk
+    if phigerade - theta < 0:
+        k = -k
+
+    n = 5                  # Feinheit der Bewegung
+    v = 3.5                # Geschwindigkeit
+    while abs(dist) > 0.01:
+        (x, y, theta) = world.getTrueRobotPose()
+        pr = np.array([[x], [y]])
+
+        dist = scalar(pr, n0v) - d
+        omega = -k * dist
+
+        robot.move([v/n, omega/n])
 
 
-    #P-Regler
-    k = 1
-    omega = -k * dist
-
-    curveDrive(robot, 0.001, 0.001, (theta + phigerade) / np.pi * 180, 50)
-    #-------------------------------------------------------------------------------------------
-    #TODO: Ab hier alles prüfen ersetzen, da folgende Zeilen womöglich
-    #	   nichts mit den erwünschten Reglern zu tun haben
-    #-------------------------------------------------------------------------------------------
-    #
-    # # Roboter zur Linie schauen und fahren lassen falls nötig
-    # while abs(dist) > 0.01:
-    #     phi = phil - theta
-    #     if dist > 0:
-    #         phi -= np.pi
-    #     phi = phi % (np.pi*2)
-    #     #print(dist)
-    #     #print("theta:", theta / np.pi * 180, "phi", phi / np.pi * 180)
-    #     #print("phil", phil / np.pi * 180)
-    #     if phi != 0:
-    #         curveDrive(robot, 0.001, 0.001, phi / np.pi * 180, 50)
-    #
-    #     if dist != 0:
-    #         straightDrive(robot, 1, abs(dist), 50)
-    #
-    #     (x, y, theta) = world.getTrueRobotPose()
-    #     pr = np.array([[x], [y]])
-    #     dist = scalar(pr, n0v) - d
 
     return
 
@@ -101,10 +84,10 @@ if __name__ == "__main__":
     myWorld = emptyWorld.buildWorld()
     myRobot = Robot.Robot()
 
-    ln = [[12, 9.5], [13.0, 10.5]]
+    ln = [[4, 10], [13.0, 10]]
     myWorld.drawPolyline(ln)
-    myRobot.setNoise(0, 0, 0)
-    myWorld.setRobot(myRobot, [10, 10, np.pi])
+    #myRobot.setNoise(0, 0, 0)
+    myWorld.setRobot(myRobot, [1, 3, 0])
 
     followLine(myRobot, ln[0], ln[1])
 
