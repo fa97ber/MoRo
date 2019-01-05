@@ -85,7 +85,27 @@ def followLine(robot, p, q):
 
     return
 
+def gotoGlobal(robot, v, p, tol):
+    p1, p2 = p
 
+    # Robotposition bestimmen:
+    world = robot.getWorld()
+    (x, y, theta) = world.getTrueRobotPose()
+
+    k = 0.02
+    test = 0
+    while vectorLength(np.array([[p1-x], [p2-y]])) > tol:
+        (x, y, theta) = world.getTrueRobotPose()
+        theta = theta / np.pi * 180
+        thetaStern = np.arctan2(p2 - y, p1 - x) / np.pi * 180
+        diff = (thetaStern - theta) % 360
+        #print(thetaStern, theta, diff)
+        if diff > 180:
+            diff = diff - 360
+        #print(diff)
+        omega = k * diff
+        robot.move([v, omega])
+    return
 
 if __name__ == "__main__":
     myWorld = emptyWorld.buildWorld()
@@ -93,11 +113,11 @@ if __name__ == "__main__":
 
     ln = [[4, 10], [13.0, 10]]
     myWorld.drawPolyline(ln)
-    myRobot.setNoise(0, 0, 0)
+    #myRobot.setNoise(0, 0, 0)
     myWorld.setRobot(myRobot, [1, 15, np.pi/2])
 
-    followLine(myRobot, ln[0], ln[1])
+    #followLine(myRobot, ln[0], ln[1])
 
-    #gotoGlobal(myRobot, 1, (13, 10), 0.1)
+    gotoGlobal(myRobot, 1, (13, 10), 0.1)
 
     myWorld.close()
