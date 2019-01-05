@@ -45,6 +45,7 @@ def followLine(robot, p, q):
 
     #Abstand und Ausrichtung des Roboters zur Linie bestimmen
     dist = scalar(pr, n0v) - d
+    diststart = dist
 
 
     # Orientierung der Geraden im KS bestimmen
@@ -59,25 +60,31 @@ def followLine(robot, p, q):
     #print(n0v)
     #print(phigerade / np.pi * 180, theta / np.pi * 180)
 
-    #P-Regler, k <= v
-    k = 0.13  # Modifikator der Winkelgeschwindigkeitk
+    #Regler
+    kp = 0.03  # Modifikator der Winkelgeschwindigkeit: P-Anteil
+    kd = 0.01
+    T = 1      # verstrichene Zeit?
     if phigerade - theta < 0:
-        k = -k
-
-    n = 5                  # Feinheit der Bewegung
-    v = 3.5                # Geschwindigkeit
+        kp = -kp
+    #omega = -kp * dist #P-Regler
+    omega = -kp * dist - kd * (dist - diststart / T)
+    r = 5
+    v = omega * r                # Geschwindigkeit
     while abs(dist) > 0.01:
+        T += 1
         (x, y, theta) = world.getTrueRobotPose()
         pr = np.array([[x], [y]])
 
         dist = scalar(pr, n0v) - d
-        omega = -k * dist
-
-        robot.move([v/n, omega/n])
+        #omega = -kp * dist
+        omega = -kp * dist - kd * (dist - diststart / T)
+        #v = omega * r             # Führt zum Bremsen vor der Kurve
+        robot.move([abs(v), omega])
 
 
 
     return
+
 
 
 if __name__ == "__main__":
@@ -86,9 +93,11 @@ if __name__ == "__main__":
 
     ln = [[4, 10], [13.0, 10]]
     myWorld.drawPolyline(ln)
-    #myRobot.setNoise(0, 0, 0)
-    myWorld.setRobot(myRobot, [1, 3, 0])
+    myRobot.setNoise(0, 0, 0)
+    myWorld.setRobot(myRobot, [1, 15, np.pi/2])
 
     followLine(myRobot, ln[0], ln[1])
+
+    #gotoGlobal(myRobot, 1, (13, 10), 0.1)
 
     myWorld.close()
