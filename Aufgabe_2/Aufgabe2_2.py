@@ -85,6 +85,7 @@ def followLine(robot, p, q):
 
     return
 
+
 def gotoGlobal(robot, v, p, tol):
     p1, p2 = p
 
@@ -93,7 +94,6 @@ def gotoGlobal(robot, v, p, tol):
     (x, y, theta) = world.getTrueRobotPose()
 
     k = 0.02
-    test = 0
     while vectorLength(np.array([[p1-x], [p2-y]])) > tol:
         (x, y, theta) = world.getTrueRobotPose()
         theta = theta / np.pi * 180
@@ -107,17 +107,28 @@ def gotoGlobal(robot, v, p, tol):
         robot.move([v, omega])
     return
 
+
+def followPolyline(robot, v, line):
+
+    tol = 1
+    for point in line:
+        if point == line[-1]:
+            tol = 0.1
+        gotoGlobal(robot, v, point, tol)
+
+
 if __name__ == "__main__":
     myWorld = emptyWorld.buildWorld()
     myRobot = Robot.Robot()
 
     ln = [[4, 10], [13.0, 10]]
-    myWorld.drawPolyline(ln)
+    pln = [[2, 7], [4, 10], [13.0, 10], [13, 2]]
+    myWorld.drawPolyline(pln)
     #myRobot.setNoise(0, 0, 0)
-    myWorld.setRobot(myRobot, [1, 15, np.pi/2])
+    myWorld.setRobot(myRobot, [1, 2, np.pi/2])
 
     #followLine(myRobot, ln[0], ln[1])
 
-    gotoGlobal(myRobot, 1, (13, 10), 0.1)
-
+    #gotoGlobal(myRobot, 1, [13, 10], 0.1)
+    followPolyline(myRobot, 0.5, pln)
     myWorld.close()
