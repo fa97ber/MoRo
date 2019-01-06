@@ -1,7 +1,7 @@
-from Robot_Simulator_V2.graphics import *
+
 from Robot_Simulator_V2 import emptyWorld
 from Robot_Simulator_V2 import Robot
-from Aufgabe_2.Kinematik import curveDrive, straightDrive
+
 import numpy as np
 
 
