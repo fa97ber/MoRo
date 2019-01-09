@@ -26,66 +26,44 @@ def wander(robot, v):
         # Fahrverhalten an die möglichen Fahrtrichtungen anpassen
         if len(SensorUtilities.extractLinesFromSensorData(dist, directions)) != 0:
             followWall(robot, v, 1)
-        if robot.senseBoxes() is not None:
+        if robot.senseBoxes() is not None and possible.__contains__(-5) and possible.__contains__(5) and possible.__contains__(-15) and possible.__contains__(15):
             tol = 1
             gotoToNextBox(robot, v, tol)
-        if len(possible) == len(dist):
-            straightDrive(robot, v, v, v * 10)
+
+        elif len(possible) == len(dist):
+            straightDrive(robot, v, v, 50)
         elif possible.__contains__(-5) and possible.__contains__(5) and possible.__contains__(-15) and possible.__contains__(15):
-            straightDrive(robot, v, v, v * 10)
+            straightDrive(robot, v, v, 50)
         elif len(possible) > 0:
             ran = np.random.randint(len(possible), size=1)
-            curveDrive(robot, v, v / 100, possible[ran[0]], v * 10)
+            curveDrive(robot, v, v / 100, possible[ran[0]], 50)
 
         else:
-            curveDrive(robot, v, 0.0001, 180, v * 10)
+            curveDrive(robot, v, 0.0001, 180, 50)
 
     return
 
 
 def gotoToNextBox(robot, v, tol):
-    # TODO: ein Teil der Ausgabe von senseBoxes wird mit jedem Aufruf tiefer verschachtelt. Warum?
     boxes = robot.senseBoxes()
     closeBox = None
-    print("boxes: ", boxes)
-    #print("close1:", closeBox)
+    #print("boxes: ", boxes)
     for x in range(0, len(boxes)):
+        print(boxes[x])
         if len(boxes[x]) == 1:
-            closeBox = boxes
+            closeBox = np.copy(boxes)
+            closeBox[0] = closeBox[0][0]
+            closeBox[1] = closeBox[1][0]
         elif closeBox is None:
             closeBox = boxes[x]
-        elif lengthVector(closeBox) > lengthVector(boxes[x]):
+        elif closeBox[0] > boxes[x][0]:
             closeBox = boxes[x]
 
-    #print("close2:", closeBox)
+    dist, angl = closeBox
+    #print(dist, angl, closeBox)
 
-    p1, p2 = closeBox
-    print(p1, p2, closeBox)
-    #p1 = p1[0]
-    #p2 = p2[0]
-    x = 0
-    y = 0
-    theta = 90
-    k = 0.02
-    # while vectorLength([p1, p2]) > tol:
-    #     boxes = robot.senseBoxes()
-    #     closeBox = None
-    #     for x in range(0, len(boxes)):
-    #         if len(boxes[x]) == 1:
-    #             closeBox = boxes
-    #         elif closeBox is None:
-    #             closeBox = boxes[x]
-    #         elif vectorLength(closeBox) > vectorLength(boxes[x]):
-    #             closeBox = boxes[x]
-    #     p1, p2 = closeBox
-    #     p1 = p1[0]
-    #     p2 = p2[0]
-    thetaStern = np.arctan2(p2, p1) / np.pi * 180
-    diff = (thetaStern - theta) % 360
-    if diff > 180:
-        diff = diff - 360
-    print(diff)
-    omega = k * diff
+    k = 0.5
+    omega = -k * angl
     robot.move([v, omega])
     return
 
@@ -124,7 +102,7 @@ def followWall(robot, v, d):
 
         # Abstand des Roboters zur Linie bestimmen
         dist = scalar(pr, n0v) - d
-        print(dist)
+        #print(dist)
 
         # Orientierung der Geraden im KS bestimmen
         refv = np.array([[1], [0]])
@@ -133,12 +111,12 @@ def followWall(robot, v, d):
             phigerade = phigerade
         elif n0v[0] > 0 and n0v[1] < 0:
             phigerade = -phigerade
-        print(phigerade / np.pi * 180)
+        #print(phigerade / np.pi * 180)
     return
 
 if __name__ == "__main__":
-    myWorld = emptyWorld.buildWorld()
-    #myWorld = officeWorld.buildWorld()
+    #myWorld = emptyWorld.buildWorld()
+    myWorld = officeWorld.buildWorld()
     myRobot = Robot.Robot()
 
     # test1
@@ -151,10 +129,10 @@ if __name__ == "__main__":
     #myWorld.addLine(5, 13, 7, 13)
     #myWorld.addLine(7, 13, 7, 4)
     #myWorld.addBox(1, 1)
-    #myWorld.addBox(10, 10)
+    #myWorld.addBox(12, 10)
 
 
-    myWorld.setRobot(myRobot, [6, 12, np.pi / 2])
+    myWorld.setRobot(myRobot, [10, 5, np.pi / 2])
     wander(myRobot, 1)
 
 

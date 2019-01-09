@@ -45,15 +45,13 @@ def followLine(robot, p, q):
 
     #Abstand und Ausrichtung des Roboters zur Linie bestimmen
     dist = scalar(pr, n0v) - d
-    diststart = dist
-
+    distalt = dist
+    #print(dist)
 
     # Orientierung der Geraden im KS bestimmen
     refv = np.array([[1], [0]])
     phigerade = np.arccos(scalar(n0v, refv) / (vectorLength(n0v) * vectorLength(refv)))
-    if n0v[0] > 0 and n0v[1] > 0:
-        phigerade = phigerade
-    elif n0v[0] > 0 and n0v[1] < 0:
+    if (n0v[0] > 0 and n0v[1] < 0) or (n0v[0] < 0 and n0v[1] < 0):
         phigerade = -phigerade
 
     #print(dist, d)
@@ -61,27 +59,26 @@ def followLine(robot, p, q):
     #print(phigerade / np.pi * 180, theta / np.pi * 180)
 
     #Regler
-    kp = 0.03  # Modifikator der Winkelgeschwindigkeit: P-Anteil
-    kd = 0.01
-    T = 1      # verstrichene Zeit?
+    kp = 0.4  # Modifikator der Winkelgeschwindigkeit: P-Anteil
+    kd = 1
+
     if phigerade - theta < 0:
         kp = -kp
-    #omega = -kp * dist #P-Regler
-    omega = -kp * dist - kd * (dist - diststart / T)
-    r = 5
-    v = omega * r                # Geschwindigkeit
-    while abs(dist) > 0.01:
-        T += 1
+    #omega = -kp * dist - kd * ((dist - distalt) / robot.getTimeStep())
+    #print(omega / np.pi * 180)
+    v = 1    # Geschwindigkeit
+    while True:
         (x, y, theta) = world.getTrueRobotPose()
         pr = np.array([[x], [y]])
 
         dist = scalar(pr, n0v) - d
-        #omega = -kp * dist
-        omega = -kp * dist - kd * (dist - diststart / T)
-        #v = omega * r             # Führt zum Bremsen vor der Kurve
-        robot.move([abs(v), omega])
+        omega = -kp * dist - kd * ((dist - distalt) / robot.getTimeStep())
+        #print("dist", dist, "omega", omega / np.pi * 180)
 
 
+        if not robot.move([abs(v), omega]):
+            break;
+        distalt = dist
 
     return
 
@@ -93,7 +90,7 @@ def gotoGlobal(robot, v, p, tol):
     world = robot.getWorld()
     (x, y, theta) = world.getTrueRobotPose()
 
-    k = 0.02
+    k = 1
     while vectorLength(np.array([[p1-x], [p2-y]])) > tol:
         (x, y, theta) = world.getTrueRobotPose()
         theta = theta / np.pi * 180
@@ -103,7 +100,7 @@ def gotoGlobal(robot, v, p, tol):
         if diff > 180:
             diff = diff - 360
         #print(diff)
-        omega = k * diff
+        omega = k * (diff / 180 * np.pi)
         robot.move([v, omega])
     return
 
@@ -125,7 +122,7 @@ if __name__ == "__main__":
     pln = [[2, 7], [4, 10], [13.0, 10], [13, 2]]
     myWorld.drawPolyline(pln)
     #myRobot.setNoise(0, 0, 0)
-    myWorld.setRobot(myRobot, [1, 2, np.pi/2])
+    myWorld.setRobot(myRobot, [1, 8, 0])
 
     #followLine(myRobot, ln[0], ln[1])
 
