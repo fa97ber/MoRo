@@ -25,8 +25,8 @@ def wander(robot, v):
             n += 1
         # Fahrverhalten an die möglichen Fahrtrichtungen anpassen
         if len(SensorUtilities.extractLinesFromSensorData(dist, directions)) != 0:
-            followWall(robot, v, 1)
-        if robot.senseBoxes() is not None and possible.__contains__(-5) and possible.__contains__(5) and possible.__contains__(-15) and possible.__contains__(15):
+            followWall(robot, v, 2)
+        elif robot.senseBoxes() is not None and possible.__contains__(-5) and possible.__contains__(5) and possible.__contains__(-15) and possible.__contains__(15):
             tol = 1
             gotoToNextBox(robot, v, tol)
 
@@ -72,8 +72,7 @@ def followWall(robot, v, d):
     dist = robot.sense()
     directions = robot.getSensorDirections()
     lines = SensorUtilities.extractLinesFromSensorData(dist, directions)
-    # TODO: Abstand und Ausrichtung der Linie bestimmt, nächster Schritt?
-    #print(lines)
+    print(lines)
     for line in lines:
         #print(line)
         p = line[0]
@@ -94,15 +93,15 @@ def followWall(robot, v, d):
             n0v = nv / vectorLength(nv)
         else:
             n0v = -(nv / vectorLength(nv))
-        d = scalar(pv, n0v)
+        dv = scalar(pv, n0v)
 
         # Roboterposition im eigenen KS
         (x, y, theta) = (0, 0, np.pi/2)
         pr = np.array([[x], [y]])
 
         # Abstand des Roboters zur Linie bestimmen
-        dist = scalar(pr, n0v) - d
-        #print(dist)
+        dist = scalar(pr, n0v) - dv
+        print(dist)
 
         # Orientierung der Geraden im KS bestimmen
         refv = np.array([[1], [0]])
@@ -111,12 +110,30 @@ def followWall(robot, v, d):
             phigerade = phigerade
         elif n0v[0] > 0 and n0v[1] < 0:
             phigerade = -phigerade
-        #print(phigerade / np.pi * 180)
+        print(phigerade / np.pi * 180)
+        dist = abs(dist)
+
+        if dist >= d-0.01 and dist <= d + 0.01:
+            if phigerade > 0:
+                curveDrive(robot, v, 0.001, (phigerade / np.pi * 180) - 90, 50) #Im rechten Winkel zur Gerade ausrichten
+            else:
+                curveDrive(robot, v, 0.001, (phigerade / np.pi * 180) + 90, 50)  # Im rechten Winkel zur Gerade ausrichten
+            straightDrive(robot, v, v, 50)
+        elif dist < d:
+            curveDrive(robot, v, 0.001, phigerade / np.pi * 180 - 180, 50) #zur Gerade ausrichten
+            straightDrive(robot, v, d - dist, 50)
+
+
+            #TODO: von der Gerade weggdrehen
+        elif dist > d:
+            curveDrive(robot, v, 0.001, phigerade / np.pi * 180, 50)  # zur Gerade ausrichten
+            straightDrive(robot, v, abs(d - dist), 50)
+            # TODO: zu der Gerade hingdrehen
     return
 
 if __name__ == "__main__":
-    #myWorld = emptyWorld.buildWorld()
-    myWorld = officeWorld.buildWorld()
+    myWorld = emptyWorld.buildWorld()
+    #myWorld = officeWorld.buildWorld()
     myRobot = Robot.Robot()
 
     # test1
@@ -127,12 +144,12 @@ if __name__ == "__main__":
     # test2
     #myWorld.addLine(5, 4, 5, 13)
     #myWorld.addLine(5, 13, 7, 13)
-    #myWorld.addLine(7, 13, 7, 4)
+    myWorld.addLine(13, 13, 13, 4)
     #myWorld.addBox(1, 1)
     #myWorld.addBox(12, 10)
 
 
-    myWorld.setRobot(myRobot, [10, 5, np.pi / 2])
+    myWorld.setRobot(myRobot, [10, 13, (np.pi / 2)* 3])
     wander(myRobot, 1)
 
 
