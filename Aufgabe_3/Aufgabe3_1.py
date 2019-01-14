@@ -1,10 +1,9 @@
-
 import numpy as np
 from Robot_Simulator_V2 import simpleWorld
 from Robot_Simulator_V2 import Robot
 
 
-def curveDrive(robot, v, r, deltaTheta, n=100):
+def MCcurveDrive(robot, v=1, r=4, deltaTheta=-np.pi, n=100):
     omega = v/r * np.sign(deltaTheta)
     robot.setTimeStep(abs(deltaTheta / omega))
 
@@ -20,6 +19,6 @@ if __name__ == "__main__":
     myRobot = Robot.Robot()
     myWorld.setRobot(myRobot, [4, 4, np.pi / 2])
     #myRobot.setNoise(0,0,0)
-    curveDrive(myRobot, 1, 4, -np.pi)
+    MCcurveDrive(myRobot)
     # Simulation schliessen:
     myWorld.close()
