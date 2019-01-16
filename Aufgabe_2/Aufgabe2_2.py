@@ -120,12 +120,12 @@ if __name__ == "__main__":
 
     ln = [[4, 10], [13.0, 10]]
     pln = [[2, 7], [4, 10], [13.0, 10], [13, 2]]
-    myWorld.drawPolyline(pln)
+    myWorld.drawPolyline(ln)
     #myRobot.setNoise(0, 0, 0)
-    myWorld.setRobot(myRobot, [1, 8, 0])
+    myWorld.setRobot(myRobot, [1, 9, 0])
 
-    #followLine(myRobot, ln[0], ln[1])
+    followLine(myRobot, ln[0], ln[1])
 
     #gotoGlobal(myRobot, 1, [13, 10], 0.1)
-    followPolyline(myRobot, 0.5, pln)
+    #followPolyline(myRobot, 0.5, pln)
     myWorld.close()

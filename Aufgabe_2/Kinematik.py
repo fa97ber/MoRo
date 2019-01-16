@@ -11,7 +11,7 @@ def curveDrive(Robot, v, r, deltaTheta, n = 150):
     # T = 0.1 sec ist voreingestellt.
     Robot.setTimeStep(deltaTheta  / abs(omega))
     # Definiere Folge von Bewegungsbefehle:
-    motionCircle = np.zeros((n,2))
+    motionCircle = np.zeros((n, 2))
     for i in range(n):
         motionCircle[i] = [v/n, omega/n]
     # Bewege Roboter
@@ -21,6 +21,17 @@ def curveDrive(Robot, v, r, deltaTheta, n = 150):
         #print("v = ", motion[0], "omega = ", motion[1]*180/np.pi)
         Robot.move(motion)
     return
+
+
+def curveDriveAlt(robot, v, r, deltaTheta, n=100):
+    omega = v/r * np.sign(deltaTheta)
+    robot.setTimeStep(abs(deltaTheta / omega))
+
+    # Bewege Roboter
+    for t in range(n):
+        robot.move([v/n, omega/n])
+    return
+
 
 def straightDrive(Robot, v, l, n = 150):
     Robot.setTimeStep(l/v)
