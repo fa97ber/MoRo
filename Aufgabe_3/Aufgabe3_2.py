@@ -10,4 +10,5 @@ def generateDistanceGrid(world):
 
 if __name__ == "__main__":
     myWorld = simpleWorld.buildWorld()
-    generateDistanceGrid(myWorld).drawGrid()
+    grid = generateDistanceGrid(myWorld)
+    grid.drawGrid()

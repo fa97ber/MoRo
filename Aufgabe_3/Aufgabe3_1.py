@@ -7,10 +7,14 @@ def MCcurveDrive(robot, v=1, r=4, deltaTheta=-np.pi, n=100):
     omega = v/r * np.sign(deltaTheta)
     robot.setTimeStep(abs(deltaTheta / omega))
 
+    world = robot.getWorld()
+    poses = []
+    poses.append(world.getTrueRobotPose())
     # Bewege Roboter
     for t in range(n):
         robot.move([v/n, omega/n])
-    return
+        poses.append(world.getTrueRobotPose())
+    return poses
 
 
 if __name__ == "__main__":

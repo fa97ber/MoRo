@@ -39,7 +39,7 @@ class ParticleFilterPoseEstimator:
     # 3b: Wendet auf alle Partikel den Bewegungsbefehl motion mit einem zufälligen Rauschen an.
     def integrateMovement(self, motion):
 
-        T = 0.1
+        T = self.robot.getTimeStep()
 
         # Motion noise parameter:
         k_d = 0.05 * 0.05  # velocity noise parameter = 0.05m*0.05m / 1m
@@ -97,7 +97,10 @@ class ParticleFilterPoseEstimator:
     # 3c: Gewichtet alle Partikel mit dem Likelihoodfield-Algorithmus und führt ein Resampling durch.
     #     dist_list, alpha_list sind vom Roboter aufgenommene Laserdaten in Polarkoordinaten.
     def integrateMeasurement (self, dist_list, alpha_list, distantMap):
-        pass
+        for pose in self.Particles:
+            value = distantMap.getValue(pose[0], pose[1])
+            print(value)
+        return
 
 
     # 3d: Berechnet aus der Partikelmenge eine Durchschnittspose.
