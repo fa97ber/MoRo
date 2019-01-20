@@ -23,6 +23,12 @@ if __name__ == "__main__":
     theta = -np.pi
 
     poses = Aufgabe3_1.MCcurveDrive(myRobot, v, r, theta, n)
+
+    # Messdaten, die für ein Resampling benötigt werden
+    dist_list = myRobot.sense()
+    alpha_list = myRobot.getSensorDirections()
+
+
     PlotUtilities.plotPositions(poses)
 
     PlotUtilities.plotPoseParticles(par.getParticles())   # Startpartikel generieren
@@ -37,7 +43,7 @@ if __name__ == "__main__":
     #for _ in range(20):
         #par.integrateMovement([1, -np.pi/8])
     #PlotUtilities.plotPoseParticles(par.getParticles(), color='g')
-    #par.integrateMeasurement(None, None, grid)
+    par.integrateMeasurement(dist_list, alpha_list, grid)
     PlotUtilities.plotShow()
 
 

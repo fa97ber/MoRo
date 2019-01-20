@@ -97,9 +97,27 @@ class ParticleFilterPoseEstimator:
     # 3c: Gewichtet alle Partikel mit dem Likelihoodfield-Algorithmus und führt ein Resampling durch.
     #     dist_list, alpha_list sind vom Roboter aufgenommene Laserdaten in Polarkoordinaten.
     def integrateMeasurement (self, dist_list, alpha_list, distantMap):
+        n = 0
+        obstacles = []
+        for dist in dist_list:
+            if dist is not None:
+                distance = dist
+                angle = alpha_list[n]
+                obstacles.append([distance, angle])
+            n += 1
+
+        #print(obstacles)
+        tol = 0.1
         for pose in self.Particles:
-            value = distantMap.getValue(pose[0], pose[1])
-            print(value)
+            pdist = distantMap.getValue(pose[0], pose[1]) # Entfernungswert zum nächsten Hindernis aus dem Likelihoodfield
+            for obstacle in obstacles:
+                dist = obstacle[0]
+                if pdist <= dist + tol and pdist >= dist - tol:
+                    #TODO: Partikel gewichten
+                    #TODO: Vielleicht mit einer extra Liste realisieren, die Partikel entsprechend ihrem Gewicht mehrfach enthält?
+                    pass
+
+        #TODO: aus gewichteten Partikeln ziehen und Resamplen
         return
 
 
