@@ -123,11 +123,11 @@ class ParticleFilterPoseEstimator:
 
     # 3d: Berechnet aus der Partikelmenge eine Durchschnittspose.
     def getPose(self):
-        pass
+        return self.Particles.mean(axis=0)
 
 
     # 3e: Berechnet die Kovarianz der Partikelmenge
     def getCovariance(self):
-        pass
+        return np.cov(self.Particles[:,:3].T)
 
 
