@@ -99,31 +99,42 @@ class ParticleFilterPoseEstimator:
     def integrateMeasurement (self, dist_list, alpha_list, distantMap):
         n = 0
         obstacles = []
+        minDistance = np.inf
         for dist in dist_list:
             if dist is not None:
                 distance = dist
                 angle = alpha_list[n]
                 obstacles.append([distance, angle])
+                if distance < minDistance:
+                    minDistance = distance
             n += 1
 
         #print(obstacles)
-        tol = 0.1
+        weightedParticles = []    # Diese Liste enthält die Partikel mehrfach entsprechend ihrem Gewicht
+        tol = 0.2
+        weight = 10                # Zusätzliches Gewicht, das passende Partikel bekommen
         for pose in self.Particles:
             pdist = distantMap.getValue(pose[0], pose[1]) # Entfernungswert zum nächsten Hindernis aus dem Likelihoodfield
-            for obstacle in obstacles:
-                dist = obstacle[0]
-                if pdist <= dist + tol and pdist >= dist - tol:
-                    #TODO: Partikel gewichten
-                    #TODO: Vielleicht mit einer extra Liste realisieren, die Partikel entsprechend ihrem Gewicht mehrfach enthält?
-                    pass
+            if pdist is not None:
+                weightedParticles.append(pose)   # Jedes Partikel, das einen Entfernungswert über die Map hat wird mit 1 gewichtet
+                if minDistance - tol <= pdist <= minDistance + tol:
+                    for _ in range(weight):
+                        weightedParticles.append(pose) # Jedes Partikel, dessen Wert innerhalb der Toleranz liegt
+                                                       # wird zuätzlich in die Liste gespeichert und damit höher gewichtet
 
-        #TODO: aus gewichteten Partikeln ziehen und Resamplen
+        # Die Partikelliste wird neu aufgebaut
+        ran = np.random.randint(len(weightedParticles), size=len(self.Particles))
+        #print(len(ran), len(weightedParticles))
+        poseList = []
+        for i in ran:
+            poseList.append(weightedParticles[i])
+        self.Particles = poseList
         return
 
 
     # 3d: Berechnet aus der Partikelmenge eine Durchschnittspose.
     def getPose(self):
-        return self.Particles.mean(axis=0)
+        return np.mean(self.Particles, axis=0)
 
 
     # 3e: Berechnet die Kovarianz der Partikelmenge

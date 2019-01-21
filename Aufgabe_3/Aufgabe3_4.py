@@ -17,34 +17,57 @@ if __name__ == "__main__":
     par.initialize([3, 3, np.pi/3], [5, 5, (np.pi/3)*2], 200)
 
     # Roboterbewegung durchführen und anschließend als Referenz plotten
-    n = 100
+    n = 50
     v = 1
     r = 4
-    theta = -np.pi
+    theta = -np.pi/2
 
     poses = Aufgabe3_1.MCcurveDrive(myRobot, v, r, theta, n)
+    PlotUtilities.plotPositions(poses)
 
     # Messdaten, die für ein Resampling benötigt werden
     dist_list = myRobot.sense()
     alpha_list = myRobot.getSensorDirections()
-
-
-    PlotUtilities.plotPositions(poses)
 
     PlotUtilities.plotPoseParticles(par.getParticles())   # Startpartikel generieren
 
     # Bewegung des Roboters nachsimulieren
     par.setRobot(myRobot)
     omega = v / r * np.sign(theta)
-    for _ in range(n):
+    for _ in range(int(n/2)):
+        par.integrateMovement([v/n, omega/n])
+    #PlotUtilities.plotPoseParticles(par.getParticles(), color='y') # Zwischen partikel generieren
+
+    for _ in range(int(n/2)):
         par.integrateMovement([v/n, omega/n])
     PlotUtilities.plotPoseParticles(par.getParticles(), color='r') # End partikel generieren
 
     #for _ in range(20):
         #par.integrateMovement([1, -np.pi/8])
     #PlotUtilities.plotPoseParticles(par.getParticles(), color='g')
+    #par.integrateMeasurement(dist_list, alpha_list, grid)
+
+    #PlotUtilities.plotPoseParticles(par.getParticles(), color='g')
+
+
+
+    # Zweite Bewegung und Messung
+
+    poses = Aufgabe3_1.MCcurveDrive(myRobot, v, r, theta, n)
+    PlotUtilities.plotPositions(poses)
+    dist_list = myRobot.sense()
+    alpha_list = myRobot.getSensorDirections()
+
+    for _ in range(int(n / 2)):
+        par.integrateMovement([v / n, omega / n])
+    for _ in range(int(n / 2)):
+        par.integrateMovement([v / n, omega / n])
+    PlotUtilities.plotPoseParticles(par.getParticles(), color='y')  # End partikel generieren
+    print("Vorher", par.getPose())
     par.integrateMeasurement(dist_list, alpha_list, grid)
+    print("Nachher", par.getPose())
+    PlotUtilities.plotPoseParticles(par.getParticles(), color='b')
     PlotUtilities.plotShow()
 
 
-    #myWorld.close()
+    myWorld.close()
