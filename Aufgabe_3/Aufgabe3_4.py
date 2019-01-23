@@ -22,7 +22,7 @@ if __name__ == "__main__":
     par.initialize([3, 3, np.pi/3], [5, 5, (np.pi/3)*2], 200)
 
     # Roboterbewegung durchführen und anschließend als Referenz plotten
-    n = 50
+    n = 100
     v = 1
     r = 4
     theta = -np.pi/2
@@ -34,7 +34,7 @@ if __name__ == "__main__":
     dist_list = myRobot.sense()
     alpha_list = myRobot.getSensorDirections()
 
-    PlotUtilities.plotPoseParticles(par.getParticles())   # Startpartikel generieren
+    PlotUtilities.plotPoseParticles(par.getParticles(), color='b')   # Startpartikel generieren
 
     # Bewegung des Roboters nachsimulieren
     par.setRobot(myRobot)
@@ -47,10 +47,7 @@ if __name__ == "__main__":
         par.integrateMovement([v/n, omega/n])
     #PlotUtilities.plotPoseParticles(par.getParticles(), color='r') # End partikel generieren
 
-    #for _ in range(20):
-        #par.integrateMovement([1, -np.pi/8])
-    #PlotUtilities.plotPoseParticles(par.getParticles(), color='g')
-    #par.integrateMeasurement(dist_list, alpha_list, grid)
+    par.integrateMeasurement(dist_list, alpha_list, grid)  #TODO: Diese Messung verändert alles
 
     #PlotUtilities.plotPoseParticles(par.getParticles(), color='g')
 
@@ -67,9 +64,10 @@ if __name__ == "__main__":
         par.integrateMovement([v / n, omega / n])
     for _ in range(int(n / 2)):
         par.integrateMovement([v / n, omega / n])
-    PlotUtilities.plotPoseParticles(par.getParticles(), color='y')  # End partikel generieren
+    #PlotUtilities.plotPoseParticles(par.getParticles(), color='y')  # End partikel generieren
     print("Vorher", par.getPose())
     par.integrateMeasurement(dist_list, alpha_list, grid)
+
     print("Nachher", par.getPose())
     print("Original", myWorld.getTrueRobotPose())
     PlotUtilities.plotPoseParticles(par.getParticles(), color='b')

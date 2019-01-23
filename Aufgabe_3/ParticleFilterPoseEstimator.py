@@ -1,5 +1,6 @@
 import numpy as np
 from PoseEstimator.PlotUtilities import *
+from Robot_Simulator_V2 import SensorUtilities
 import random
 
 
@@ -102,62 +103,40 @@ class ParticleFilterPoseEstimator:
     def integrateMeasurement (self, dist_list, alpha_list, distantMap):
         n = 0
         obstacles = []
-        minDistance = np.inf
         for dist in dist_list:
             if dist is not None:
                 distance = dist
                 angle = alpha_list[n]
                 obstacles.append([distance, angle])
-                if distance < minDistance:
-                    minDistance = distance
             n += 1
 
-        #print(obstacles)
         chance = []
         weightedParticles = []    # Diese Liste enthält die Partikel mehrfach entsprechend ihrem Gewicht
-        #weightedParticles.append([0.0, 0.0, None])
-        ##tol = 0.2
-        #weight = 10                # Zusätzliches Gewicht, das passende Partikel bekommen
         for m in range(len(self.Particles)):
             pose = self.Particles[m]
             pdist = distantMap.getValue(pose[0], pose[1]) # Entfernungswert zum nächsten Hindernis aus dem Likelihoodfield
 
-            if pdist is not None:
-                prob = 1.0
-                for obstacle in obstacles:
-                    x = pose[0] + obstacle[0] * np.cos(obstacle[1] + pose[2])
-                    y = pose[1] + obstacle[0] * np.sin(obstacle[1] + pose[2])
-                    dist = distantMap.getValue(x, y)
-                    if dist is not None:
-                        p = self.__ndf(0, dist, 0.4**2)
-                        prob = prob * p
-                #weightedParticles.append(pose)   # Jedes Partikel, das einen Entfernungswert über die Map hat wird mit 1 gewichtet
-                #if minDistance - tol <= pdist <= minDistance + tol:
-                    #for _ in range(int(weight)):
-                        #weightedParticles.append(pose) # Jedes Partikel, dessen Wert innerhalb der Toleranz liegt
-                                                       # wird zuätzlich in die Liste gespeichert und damit höher gewichtet
-                #lastweight = weightedParticles[-1][1]
-                #weightedParticles.append([lastweight, lastweight + prob, m])
-                chance.append(prob)
-                weightedParticles.append(m)
+            #if pdist is not None:
+            prob = 1.0
+            for obstacle in obstacles:
+                coord = SensorUtilities.transformPolarCoordL2G([obstacle[0]], [obstacle[1]], pose)
+                x,y = coord[0]
+                #x = pose[0] + obstacle[0] * np.cos(obstacle[1] - pose[2])
+                #y = pose[1] + obstacle[0] * np.sin(obstacle[1] - pose[2])
+                dist = distantMap.getValue(x, y)
+                if dist is not None:
+                    p = self.__ndf(0, dist, 0.4**2)
+                    prob = prob * p
+            chance.append(prob)
+            weightedParticles.append(m)
 
 
         # Die Partikelliste wird neu aufgebaut
         chance = chance/np.sum(chance)
         poseList = []
-        #ran = np.random.uniform(0, weightedParticles[-1][1], len(self.Particles))
         ran = np.random.choice(weightedParticles, size = len(self.Particles), p = chance)
-        print(ran)
-        print(chance)
-        print(weightedParticles)
-        #print(weightedParticles)
         for r in ran:
-            #for n in range(len(weightedParticles)):
-                #if weightedParticles[n][0] < r < weightedParticles[n][1]:
-                    #index = weightedParticles[n][2]
-                    #if index is not None:
-            poseList.append(self.Particles[n])
-                    #continue
+            poseList.append(self.Particles[r])
         self.Particles = poseList
         return
 
