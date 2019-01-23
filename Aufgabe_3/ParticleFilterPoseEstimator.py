@@ -113,8 +113,9 @@ class ParticleFilterPoseEstimator:
             n += 1
 
         #print(obstacles)
+        chance = []
         weightedParticles = []    # Diese Liste enthält die Partikel mehrfach entsprechend ihrem Gewicht
-        weightedParticles.append([0.0, 0.0, None])
+        #weightedParticles.append([0.0, 0.0, None])
         ##tol = 0.2
         #weight = 10                # Zusätzliches Gewicht, das passende Partikel bekommen
         for m in range(len(self.Particles)):
@@ -124,8 +125,8 @@ class ParticleFilterPoseEstimator:
             if pdist is not None:
                 prob = 1.0
                 for obstacle in obstacles:
-                    x = pose[0] + obstacle[0] * np.cos(obstacle[1])
-                    y = pose[1] + obstacle[0] * np.sin(obstacle[1])
+                    x = pose[0] + obstacle[0] * np.cos(obstacle[1] + pose[2])
+                    y = pose[1] + obstacle[0] * np.sin(obstacle[1] + pose[2])
                     dist = distantMap.getValue(x, y)
                     if dist is not None:
                         p = self.__ndf(0, dist, 0.4**2)
@@ -135,22 +136,28 @@ class ParticleFilterPoseEstimator:
                     #for _ in range(int(weight)):
                         #weightedParticles.append(pose) # Jedes Partikel, dessen Wert innerhalb der Toleranz liegt
                                                        # wird zuätzlich in die Liste gespeichert und damit höher gewichtet
-                lastweight = weightedParticles[-1][1]
-                weightedParticles.append([lastweight, lastweight + prob, m])
+                #lastweight = weightedParticles[-1][1]
+                #weightedParticles.append([lastweight, lastweight + prob, m])
+                chance.append(prob)
+                weightedParticles.append(m)
 
 
         # Die Partikelliste wird neu aufgebaut
+        chance = chance/np.sum(chance)
         poseList = []
-        ran = np.random.uniform(0, weightedParticles[-1][1], len(self.Particles))
+        #ran = np.random.uniform(0, weightedParticles[-1][1], len(self.Particles))
+        ran = np.random.choice(weightedParticles, size = len(self.Particles), p = chance)
         print(ran)
+        print(chance)
         print(weightedParticles)
+        #print(weightedParticles)
         for r in ran:
-            for n in range(len(weightedParticles)):
-                if weightedParticles[n][0] < r < weightedParticles[n][1]:
-                    index = weightedParticles[n][2]
-                    if index is not None:
-                        poseList.append(self.Particles[index])
-                    continue
+            #for n in range(len(weightedParticles)):
+                #if weightedParticles[n][0] < r < weightedParticles[n][1]:
+                    #index = weightedParticles[n][2]
+                    #if index is not None:
+            poseList.append(self.Particles[n])
+                    #continue
         self.Particles = poseList
         return
 

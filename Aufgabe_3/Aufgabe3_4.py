@@ -67,7 +67,7 @@ if __name__ == "__main__":
         par.integrateMovement([v / n, omega / n])
     for _ in range(int(n / 2)):
         par.integrateMovement([v / n, omega / n])
-    #PlotUtilities.plotPoseParticles(par.getParticles(), color='y')  # End partikel generieren
+    PlotUtilities.plotPoseParticles(par.getParticles(), color='y')  # End partikel generieren
     print("Vorher", par.getPose())
     par.integrateMeasurement(dist_list, alpha_list, grid)
     print("Nachher", par.getPose())
