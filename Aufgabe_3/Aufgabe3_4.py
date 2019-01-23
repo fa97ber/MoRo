@@ -5,13 +5,18 @@ import numpy as np
 from Robot_Simulator_V2 import simpleWorld
 from Robot_Simulator_V2 import Robot
 from PoseEstimator import PlotUtilities
+import matplotlib as plt
 
 if __name__ == "__main__":
 
     myWorld = simpleWorld.buildWorld()
+    #myWorld.addDynObstacleLine(10.5,2,10.5,5)
     grid = Aufgabe3_2.generateDistanceGrid(myWorld)
     myRobot = Robot.Robot()
     myWorld.setRobot(myRobot, [4, 4, np.pi / 2])
+
+
+
 
     par = ParticleFilterPoseEstimator.ParticleFilterPoseEstimator()
     par.initialize([3, 3, np.pi/3], [5, 5, (np.pi/3)*2], 200)
@@ -40,7 +45,7 @@ if __name__ == "__main__":
 
     for _ in range(int(n/2)):
         par.integrateMovement([v/n, omega/n])
-    PlotUtilities.plotPoseParticles(par.getParticles(), color='r') # End partikel generieren
+    #PlotUtilities.plotPoseParticles(par.getParticles(), color='r') # End partikel generieren
 
     #for _ in range(20):
         #par.integrateMovement([1, -np.pi/8])
@@ -62,11 +67,15 @@ if __name__ == "__main__":
         par.integrateMovement([v / n, omega / n])
     for _ in range(int(n / 2)):
         par.integrateMovement([v / n, omega / n])
-    PlotUtilities.plotPoseParticles(par.getParticles(), color='y')  # End partikel generieren
+    #PlotUtilities.plotPoseParticles(par.getParticles(), color='y')  # End partikel generieren
     print("Vorher", par.getPose())
     par.integrateMeasurement(dist_list, alpha_list, grid)
     print("Nachher", par.getPose())
+    print("Original", myWorld.getTrueRobotPose())
     PlotUtilities.plotPoseParticles(par.getParticles(), color='b')
+
+
+    plt.pyplot.plot([2,16,16,4,4,2,2], [2,2,12,12,10,10,2], 'k-')
     PlotUtilities.plotShow()
 
 

@@ -93,6 +93,9 @@ class ParticleFilterPoseEstimator:
         self.Particles = poseList
         return
 
+    def __ndf(self,x,mu,sigma2):
+        c = 1/(np.sqrt(2*sigma2*np.pi))
+        return c*np.exp(-0.5 * (mu-x)**2/sigma2)
 
     # 3c: Gewichtet alle Partikel mit dem Likelihoodfield-Algorithmus und führt ein Resampling durch.
     #     dist_list, alpha_list sind vom Roboter aufgenommene Laserdaten in Polarkoordinaten.
@@ -111,23 +114,43 @@ class ParticleFilterPoseEstimator:
 
         #print(obstacles)
         weightedParticles = []    # Diese Liste enthält die Partikel mehrfach entsprechend ihrem Gewicht
-        tol = 0.2
-        weight = 10                # Zusätzliches Gewicht, das passende Partikel bekommen
-        for pose in self.Particles:
+        weightedParticles.append([0.0, 0.0, None])
+        ##tol = 0.2
+        #weight = 10                # Zusätzliches Gewicht, das passende Partikel bekommen
+        for m in range(len(self.Particles)):
+            pose = self.Particles[m]
             pdist = distantMap.getValue(pose[0], pose[1]) # Entfernungswert zum nächsten Hindernis aus dem Likelihoodfield
+
             if pdist is not None:
-                weightedParticles.append(pose)   # Jedes Partikel, das einen Entfernungswert über die Map hat wird mit 1 gewichtet
-                if minDistance - tol <= pdist <= minDistance + tol:
-                    for _ in range(weight):
-                        weightedParticles.append(pose) # Jedes Partikel, dessen Wert innerhalb der Toleranz liegt
+                prob = 1.0
+                for obstacle in obstacles:
+                    x = pose[0] + obstacle[0] * np.cos(obstacle[1])
+                    y = pose[1] + obstacle[0] * np.sin(obstacle[1])
+                    dist = distantMap.getValue(x, y)
+                    if dist is not None:
+                        p = self.__ndf(0, dist, 0.4**2)
+                        prob = prob * p
+                #weightedParticles.append(pose)   # Jedes Partikel, das einen Entfernungswert über die Map hat wird mit 1 gewichtet
+                #if minDistance - tol <= pdist <= minDistance + tol:
+                    #for _ in range(int(weight)):
+                        #weightedParticles.append(pose) # Jedes Partikel, dessen Wert innerhalb der Toleranz liegt
                                                        # wird zuätzlich in die Liste gespeichert und damit höher gewichtet
+                lastweight = weightedParticles[-1][1]
+                weightedParticles.append([lastweight, lastweight + prob, m])
+
 
         # Die Partikelliste wird neu aufgebaut
-        ran = np.random.randint(len(weightedParticles), size=len(self.Particles))
-        #print(len(ran), len(weightedParticles))
         poseList = []
-        for i in ran:
-            poseList.append(weightedParticles[i])
+        ran = np.random.uniform(0, weightedParticles[-1][1], len(self.Particles))
+        print(ran)
+        print(weightedParticles)
+        for r in ran:
+            for n in range(len(weightedParticles)):
+                if weightedParticles[n][0] < r < weightedParticles[n][1]:
+                    index = weightedParticles[n][2]
+                    if index is not None:
+                        poseList.append(self.Particles[index])
+                    continue
         self.Particles = poseList
         return
 
